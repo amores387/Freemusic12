@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatGPT Web Interface (BetaDash GPT-5)</title>
+  <style>
+    body {
+      background: #0f0f0f;
+      color: #00ff88;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+      min-height: 100vh;
+      margin: 0;
+    }
+    h1 { margin-bottom: 16px; font-size: 28px; text-align: center; }
+    #chatBox {
+      width: 100%;
+      max-width: 800px;
+      height: 400px;
+      border: 1px solid #00ff88;
+      border-radius: 10px;
+      background: #111;
+      padding: 12px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+    }
+    #userInput {
+      width: 100%;
+      max-width: 800px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #00ff88;
+      background: #111;
+      color: #00ff88;
+      font-family: 'Courier New', monospace;
+    }
+    button {
+      margin-top: 8px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      background: #00ff88;
+      color: #001;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .message { margin-bottom: 10px; }
+    .user { color: #00ffff; }
+    .bot { color: #ffb400; }
+  </style>
+</head>
+<body>
+  <h1>ChatGPT Interface (BetaDash GPT-5)</h1>
+
+  <div id="chatBox"></div>
+  
+  <input type="text" id="userInput" placeholder="Type your question here..." />
+  <button onclick="sendMessage()">Send</button>
+
+  <script>
+    const chatBox = document.getElementById('chatBox');
+    const userInput = document.getElementById('userInput');
+
+    async function sendMessage() {
+      const question = userInput.value.trim();
+      if (!question) return;
+
+      appendMessage("You", question, "user");
+      userInput.value = "";
+
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question })
+        });
+
+        const data = await response.json();
+        appendMessage("ChatGPT", data.answer, "bot");
+
+      } catch (err) {
+        console.error(err);
+        appendMessage("Error", "❌ Failed to get response.", "bot");
+      }
+    }
+
+    function appendMessage(sender, text, type) {
+      const div = document.createElement("div");
+      div.classList.add("message", type);
+      div.textContent = `${sender}: ${text}`;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    userInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+  </script>
+</body>
+</html>
